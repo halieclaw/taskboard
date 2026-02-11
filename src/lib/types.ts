@@ -35,8 +35,8 @@ export const COLUMNS: { key: Status; label: string }[] = [
 ]
 
 export const PRIORITY_COLORS: Record<Priority, string> = {
-  critical: 'bg-critical/20 text-critical border-critical/30',
-  high: 'bg-high/20 text-high border-high/30',
-  medium: 'bg-medium/20 text-medium border-medium/30',
-  low: 'bg-low/20 text-low border-low/30',
+  critical: 'bg-critical/15 text-critical/80',
+  high: 'bg-high/15 text-high/80',
+  medium: 'bg-medium/15 text-medium/80',
+  low: 'bg-white/[0.06] text-white/40',
 }

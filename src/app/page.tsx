@@ -69,25 +69,40 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-border px-4 sm:px-6 py-3 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center text-white text-sm font-bold">T</div>
-          <h1 className="text-lg font-semibold tracking-tight">Taskboard</h1>
-          <span className="text-xs text-gray-500 hidden sm:inline">Agent Pipeline</span>
+      {/* Header */}
+      <header className="glass-heavy sticky top-0 z-40 px-5 sm:px-8 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3.5">
+          <div className="w-8 h-8 rounded-xl btn-primary flex items-center justify-center text-white text-sm font-bold shadow-lg">
+            T
+          </div>
+          <div>
+            <h1 className="text-[15px] font-semibold tracking-tight text-white/90">Taskboard</h1>
+            <span className="text-[11px] text-white/30 font-medium tracking-wide">Agent Pipeline</span>
+          </div>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="px-3 py-1.5 bg-accent hover:bg-accent-hover text-white text-sm rounded-lg transition-colors font-medium"
+          className="btn-primary px-4 py-2 text-white text-[13px] rounded-xl font-medium flex items-center gap-1.5"
         >
-          + New Task
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>
+          New Task
         </button>
       </header>
 
-      <main className="flex-1 overflow-x-auto p-4 sm:p-6">
+      {/* Board */}
+      <main className="flex-1 overflow-x-auto px-5 sm:px-8 py-6">
         {loading ? (
-          <div className="flex items-center justify-center h-64 text-gray-500">Loading...</div>
+          <div className="flex gap-5">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="w-72 flex-shrink-0 space-y-3">
+                <div className="shimmer h-5 w-24 rounded-lg" />
+                <div className="shimmer h-24 rounded-2xl" />
+                <div className="shimmer h-20 rounded-2xl" />
+              </div>
+            ))}
+          </div>
         ) : (
-          <div className="flex gap-4 min-w-max h-full">
+          <div className="flex gap-5 min-w-max h-full">
             {COLUMNS.map(col => (
               <KanbanColumn
                 key={col.key}
