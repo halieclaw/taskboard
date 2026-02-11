@@ -11,6 +11,7 @@ export interface AgentLog {
   timestamp: string
   message: string
   agent?: string
+  action?: string
 }
 
 export interface Task {
@@ -35,8 +36,8 @@ export const COLUMNS: { key: Status; label: string }[] = [
 ]
 
 export const PRIORITY_COLORS: Record<Priority, string> = {
-  critical: 'bg-critical/15 text-critical/80',
-  high: 'bg-high/15 text-high/80',
-  medium: 'bg-medium/15 text-medium/80',
-  low: 'bg-white/[0.06] text-white/40',
+  critical: 'bg-critical/10 text-critical',
+  high: 'bg-high/10 text-high',
+  medium: 'bg-medium/10 text-medium',
+  low: 'bg-black/[0.04] text-text-tertiary',
 }
