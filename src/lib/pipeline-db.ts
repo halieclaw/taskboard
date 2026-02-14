@@ -329,3 +329,87 @@ export async function deleteItem(id: string): Promise<boolean> {
   const { rowCount } = await sql`DELETE FROM pipeline_items WHERE id = ${id}`
   return (rowCount ?? 0) > 0
 }
+
+// ── Processing ──────────────────────────────────────────────
+
+export interface PendingItem {
+  item: PipelineItem
+  stage: PipelineStage
+  pipeline_name: string
+  pipeline_id: string
+  next_stage_id: string | null
+}
+
+export async function getPendingItems(): Promise<PendingItem[]> {
+  await ensurePipelineTables()
+
+  const pipelines = await getPipelines()
+  const pending: PendingItem[] = []
+
+  for (const pipeline of pipelines) {
+    for (let i = 0; i < pipeline.stages.length; i++) {
+      const stage = pipeline.stages[i]
+      if (!stage.agent_config.enabled || stage.is_end) continue
+
+      const nextStage = pipeline.stages[i + 1] || null
+      const intervalMs = stage.agent_config.cron_interval_ms
+
+      for (const item of pipeline.items) {
+        if (item.current_stage_id !== stage.id) continue
+        if (item.status !== 'active') continue
+
+        // Check if enough time has passed since last processing
+        const lastLog = item.logs.filter(l => l.action === 'processed').pop()
+        if (lastLog) {
+          const elapsed = Date.now() - new Date(lastLog.timestamp).getTime()
+          if (elapsed < intervalMs) continue
+        }
+
+        pending.push({
+          item,
+          stage,
+          pipeline_name: pipeline.name,
+          pipeline_id: pipeline.id,
+          next_stage_id: nextStage?.id || null,
+        })
+      }
+    }
+  }
+
+  return pending
+}
+
+export async function writeItemResult(
+  id: string,
+  result: { output?: string; payload_updates?: Record<string, any>; move_to_next?: boolean },
+  agentName: string = 'pipeline-engine'
+): Promise<PipelineItem | null> {
+  await ensurePipelineTables()
+  const { rows: existing } = await sql`SELECT * FROM pipeline_items WHERE id = ${id}`
+  if (!existing[0]) return null
+
+  const item = rowToItem(existing[0])
+
+  // Merge payload
+  const newPayload = { ...item.payload, ...(result.payload_updates || {}) }
+
+  // Add processing log
+  const processLog = {
+    timestamp: new Date().toISOString(),
+    message: result.output ? `Processed: ${result.output.substring(0, 200)}` : 'Processed',
+    agent: agentName,
+    action: 'processed',
+  }
+  const newLogs = [...item.logs, processLog]
+
+  const { rows } = await sql`
+    UPDATE pipeline_items SET
+      payload = ${JSON.stringify(newPayload)},
+      logs = ${JSON.stringify(newLogs)},
+      updated_at = NOW()
+    WHERE id = ${id}
+    RETURNING *
+  `
+
+  return rowToItem(rows[0])
+}
